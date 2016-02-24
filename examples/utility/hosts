@@ -1,0 +1,7 @@
+[ops]
+ops1 ansible_ssh_host=vm0 ansible_ssh_port=1022
+ops2 ansible_ssh_host=vm0 ansible_ssh_port=2022
+ops3 ansible_ssh_host=vm0 ansible_ssh_port=3022
+ops4 ansible_ssh_host=vm0 ansible_ssh_port=4022
+ops5 ansible_ssh_host=vm0 ansible_ssh_port=5022
+ops6 ansible_ssh_host=vm0 ansible_ssh_port=6022
