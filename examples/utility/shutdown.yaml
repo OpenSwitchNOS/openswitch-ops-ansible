@@ -1,0 +1,10 @@
+---
+- name: shutdown the switches
+  hosts: ops
+  gather_facts: no
+  vars:
+    ansible_ssh_user: admin
+  tasks:
+    - name: shutdown the switch
+      command: shutdown
+      become: yes
