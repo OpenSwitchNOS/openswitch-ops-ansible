@@ -1,0 +1,16 @@
+---
+- name: print out JSON input for this play
+  debug: >
+    msg="{{ lookup('template', 'main.j2') }}"
+  when: ops_debug is sameas true
+
+- name: configure the switch
+  become: yes
+  ops_template:
+    src: "{{ lookup('template', 'main.j2') }}"
+  when: bridges is defined or vrfs is defined
+  register: result
+
+- name: result from the switch
+  debug: var=result
+  when: ops_debug is sameas true
