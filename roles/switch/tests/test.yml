@@ -1,0 +1,5 @@
+---
+- name: Noop playbook
+  hosts: switch
+  roles:
+    - switch

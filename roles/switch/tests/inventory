@@ -1,0 +1,5 @@
+[local]
+localhost
+
+[switch]
+ops ansible_host=ops ansible_port=22

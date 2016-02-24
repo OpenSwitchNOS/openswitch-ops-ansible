@@ -1,0 +1,55 @@
+---
+# Following the sample role CI
+# https://github.com/geerlingguy/ansible-role-apache/blob/master/.travis.yml
+
+sudo: required
+dist: trusty
+
+env:
+  global:
+    switch_image: openswitch/genericx86-64
+    switch_version: latest
+    distribution: ubuntu
+    version: 14.04
+    role_under_test: switch
+    switch_user: admin
+    ansible_ops: "-vvvv"
+  matrix:
+    - test_filename: test.yml
+    - test_filename: test_bridge.yml
+    - test_filename: test_switch.yml
+
+services:
+  - docker
+
+before_install:
+  # OpenSwitch container
+  - 'sudo docker pull ${switch_image}:${switch_version}'
+  - 'sudo docker build --rm=true --file=tests/Dockerfile.openswitch --tag=ops:local tests'
+
+  # Ansible control machine container
+  - 'sudo docker pull ${distribution}:${version}'
+  - 'sudo docker build --rm=true --file=tests/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}:local tests'
+
+script:
+  - switch_id=$(mktemp)
+  - ansible_id=$(mktemp)
+
+  # Run OpenSwitch container in privileged and detached state
+  - 'sudo docker run --privileged --detach -P -v /tmp:/tmp -v /dev/log:/dev/log -v /sys/fs/cgroup:/sys/fs/cgroup ops:local /sbin/init > "${switch_id}"'
+
+  # Run Ansible control machine container in detached state
+  - 'sudo docker run --detach --link "$(cat ${switch_id})":ops --volume="${PWD}":/etc/ansible/roles/${role_under_test}:rw ${distribution}-${version}:local /sbin/init > "${ansible_id}"'
+
+  # Ansible syntax check
+  - 'sudo docker exec --tty "$(cat ${ansible_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/${role_under_test}/tests/"${test_filename}" --syntax-check'
+
+  # Run the test
+  - 'sudo docker exec --tty "$(cat ${ansible_id})" env TERM=xterm ansible-playbook "${ansible_ops}" -u "${switch_user}" /etc/ansible/roles/${role_under_test}/tests/"${test_filename}"'
+
+  # Clenaup
+  - 'sudo docker stop "$(cat ${ansible_id})"'
+  - 'sudo docker stop "$(cat ${switch_id})"'
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
