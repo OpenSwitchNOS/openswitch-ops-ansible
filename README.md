@@ -15,12 +15,14 @@ area for that purpose.
 ## What is the structure of the repository?
 
 As explained in the [OpenSwitch contribution page](http://www.openswitch.net/documents/dev/contribute-code#adding-top-level-files-and-directories),
-all the roles as well as the sample playbooks will be located under
-```src``` directory:
+all the roles as well as the sample playbooks will be located under the
+```roles``` and ```utils``` directory, respectively:
 
-- src/
-  - roles/
-  - examples/
+- roles/
+  - switch/
+- utils/
+- ops-tests/
+  - components/
 
 ## What is the license?
 

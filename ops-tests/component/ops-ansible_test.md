@@ -1,11 +1,13 @@
 # Ansible Test Cases
 
-- [Test to copy ssh key using ansible playbook](#test-to-copy-ssh-key-using-ansible-playbook)
+- [Test the SSH reachability to OpenSwitch](#test-the-ssh-reachability)
 
-## Test to copy ssh key using ansible playbook
+## Test the SSH reachability
 ### Objective
-Verify that ssh key can be copied from control machine to openswitch and
-communciation can be established using ping module.
+Verify that the ssh public key can be copied from control machine
+to OpenSwitch by running `utils/copy_public_key.yaml` playbook and
+check the SSH communication can be established by running
+`utils/ping.yaml` playbook.
 
 ### Requirements
 The topology framework test setup is required for this test.
@@ -15,46 +17,34 @@ The topology framework test setup is required for this test.
 #### Topology diagram
 
 ```
-         +-------------+
-         |             |
-         |             |
-         | OpenSwitch  |
-         |             |
-         |             |
-         |             |
-         +------+------+
-                |sp1
-                |
-                |eth0
-         +------+------+
-         |             |
-         |             |
-         |  Ansible    |
-         |  control    |
-         |  machine    |
-         +-------------+
-
+      +-----------------+             +------------+
+      |     Ansible     | eth0   eth0 |            |
+      | control machine |-------------| OpenSwitch |
+      |    (server)     |             |  (switch)  |
+      +-----------------+             +------------+
 ```
 
 ### Description
-This test confirms that we can establish ssh communication between Ansible
-control machine and the openswitch. We use the ansible playbook to copy
-the ssh key from ansible control machine to openswitch and then try
-using a ping module through ansible playbook to check if we can communicate
-with the openswitch.
+This test confirms that we can establish ssh communication
+between Ansible control machine and the openswitch. We use
+the ansible playbook to copy the ssh key from ansible control
+machine to openswitch and then try using a ping module through
+ansible playbook to check if we can communicate with OpenSwitch.
 
-#### Steps to run the tests:
-- git clone https://git.openswitch.net/openswitch/ops-build  ops-sim
-- cd ops-sim
-- make configure genericx86-64
-- make devenv_init
-- make devenv_add ops-ansible
-- make testenv_init
-- make testenv_run feature ops-ansible
+#### Test steps
+
+1. Play `utils/copy_public_key.yaml` playbook with `root` account
+   by `ansible-playbook utils/copy_public_key.yaml` command on
+   Ansible control machine.
+2. Check the exit code of the above command by executing `echo $?`.
+3. Play `utils/ping.yaml` playbook with `admin` account by
+   `ansible-playbook utils/ping.yaml` command on Ansible
+   control machine.
+4. Check the exit code of the above command by executing `echo $?`.
 
 ### Test result criteria
 #### Test pass criteria
-Running Ansible ping module in an ansible playbook from control machine
-on the openswitch succeeds.
+All the `ansible-playbook` execution returns zero.
+
 #### Test fail criteria
-Running Ansible ping module in an ansible playbook fails on the openswitch
+One of the `ansible-playbook` execution returns non-zero.
