@@ -14,6 +14,7 @@
 # under the License.
 
 import time
+from pytest import mark
 
 
 TOPOLOGY = """
@@ -64,6 +65,7 @@ def _test_playbook(server, playbook, ops=''):
     assert '0' == server('echo $?'), "fail in %s" % playbook
 
 
+@mark.gate
 def test_hostname(topology, step):
     playbook = 'roles/switch/tests/test_hostname.yml'
     server = _setup(topology)
