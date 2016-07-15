@@ -117,15 +117,10 @@
           - "result[0] contains '{{ ops_system_hostname }}'"
           - "result[1] contains 'routed'"
           - "result[2] contains 'routed'"
-          - "result[3] contains 'access'"
-          - "result[4] contains 'access'"
           - "result[5] contains '172.16.1.0/24'"
           - "result[5] contains '172.16.2.0/24'"
-          - "result[5] contains '172.16.3.0/24'"
-          - "result[5] contains '172.16.4.0/24'"
-          - "result[5] contains '172.16.5.0/24'"
         interval: 5
-        retries: 3
+        retries: 5
       register: test_result
 
     - name: show the test result
