@@ -12,14 +12,6 @@
       password: netop
       host: "{{ ansible_host }}"
       port: "{{ ansible_port }}"
-    ops_rest_provider:
-      transport: rest
-      username: netop
-      password: netop
-      host: "{{ ansible_host }}"
-      port: "{{ ops_rest_port }}"
-      use_ssl: true
-      validate_certs: no
 
   roles:
     - role: switch
@@ -152,18 +144,4 @@
 
     - name: debug the test result
       debug: var=test_result
-      when: ops_debug
-
-    - name: get the system, bridge, and VLAN facts over REST API
-      connection: local
-      ops_facts:
-        provider: "{{ ops_rest_provider }}"
-        endpoints:
-          - /system
-          - /system/bridges
-          - /system/bridges/bridge_normal/vlans
-      register: rest_result
-
-    - name: debug the REST result
-      debug: var=rest_result
       when: ops_debug

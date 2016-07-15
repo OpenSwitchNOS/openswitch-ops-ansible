@@ -11,14 +11,6 @@
       password: netop
       host: "{{ ansible_host }}"
       port: "{{ ansible_port }}"
-    ops_rest_provider:
-      transport: rest
-      username: netop
-      password: netop
-      host: "{{ ansible_host }}"
-      port: "{{ ops_rest_port }}"
-      use_ssl: true
-      validate_certs: no
 
   roles:
     - switch
@@ -67,17 +59,4 @@
 
     - name: debug the result
       debug: var=result
-      when: ops_debug
-
-    - name: get the system and subsystem facts over REST API
-      connection: local
-      ops_facts:
-        provider: "{{ ops_rest_provider }}"
-        endpoints:
-          - /system
-          - /system/subsystems
-      register: rest_result
-
-    - name: debug the REST result
-      debug: var=rest_result
       when: ops_debug
