@@ -14,7 +14,7 @@
 # under the License.
 
 import time
-
+from pytest import mark
 
 TOPOLOGY = """
 #
@@ -49,23 +49,40 @@ def _setup(topo):
     with switch.libs.vtysh.ConfigInterfaceMgmt() as ctx:
         ctx.ip_static('192.168.1.1/24')
 
-    # Copy SSH public key through playbook
-    _test_playbook(server, 'utils/copy_public_key.yaml', ops='-u root')
-
     return server
 
+def copy_ssh_key(server, step):
+    # Copy SSH public key through playbook
+    step("copy ssh-key from host to ops")
+    _test_playbook(server, 'utils/copy_public_key.yaml', ops='-u root')
+
+
+def git_clone_ops_ansible_copy_sshkey(server):
+    server("git clone https://git.openswitch.net/openswitch/"
+           "ops-ansible.git /etc/ansible/")
+    server("cp -r /etc/ansible/utils/id* /root/.ssh/")
 
 def _cmd(playbook, ops=''):
     return "ansible-playbook %s /etc/ansible/%s" % (ops, playbook)
 
 
 def _test_playbook(server, playbook, ops=''):
-    server(_cmd(playbook, ops))
+    bash = server.get_shell('bash')
+    bash.send_command(_cmd(playbook, ops), timeout=90)
+    out = bash.get_response()
+    print(out)
     assert '0' == server('echo $?'), "fail in %s" % playbook
 
 
-def test_playbooks(topology, step):
+@mark.platform_incompatible(['docker'])
+def test_switch_role(topology, step):
+    test_playbooks = ['roles/switch/tests/test_version.yml',
+                      'roles/switch/tests/test_bridge.yml',
+                      'roles/switch/tests/test_bridge_vlan.yml']
     server = _setup(topology)
-    for playbook in ['utils/ping.yaml']:
+    if(topology.engine == 'ostl'):
+        git_clone_ops_ansible_copy_sshkey(server)
+    copy_ssh_key(server, step)
+    for playbook in test_playbooks:
         step("Test %s playbook" % playbook)
         _test_playbook(server, playbook, ops='-v')

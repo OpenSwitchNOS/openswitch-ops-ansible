@@ -14,7 +14,7 @@
 # under the License.
 
 import time
-
+from pytest import mark
 
 TOPOLOGY = """
 #
@@ -25,7 +25,7 @@ TOPOLOGY = """
 #      +-----------------+             +------------+
 #
 # Nodes
-[type=oobmhost name="server"] server
+[type=oobmhost name="server" image="openswitch/ops-ansible:2.1"] server
 [type=openswitch name="switch"] switch
 #
 # Links
@@ -49,10 +49,19 @@ def _setup(topo):
     with switch.libs.vtysh.ConfigInterfaceMgmt() as ctx:
         ctx.ip_static('192.168.1.1/24')
 
+    return server
+
+
+def copy_ssh_key(server, step):
     # Copy SSH public key through playbook
+    step("copy ssh-key from host to ops")
     _test_playbook(server, 'utils/copy_public_key.yaml', ops='-u root')
 
-    return server
+
+def git_clone_ops_ansible_copy_sshkey(server):
+    server("git clone https://git.openswitch.net/openswitch/"
+           "ops-ansible.git /etc/ansible/")
+    server("cp -r /etc/ansible/utils/id* /root/.ssh/")
 
 
 def _cmd(playbook, ops=''):
@@ -60,12 +69,22 @@ def _cmd(playbook, ops=''):
 
 
 def _test_playbook(server, playbook, ops=''):
-    server(_cmd(playbook, ops))
+    bash = server.get_shell('bash')
+    bash.send_command(_cmd(playbook, ops), timeout=90)
+    out = bash.get_response()
+    print(out)
     assert '0' == server('echo $?'), "fail in %s" % playbook
 
 
-def test_hostname(topology, step):
-    playbook = 'roles/switch/tests/test_hostname.yml'
+@mark.platform_incompatible(['docker'])
+def test_bgp_role(topology, step):
+    test_playbooks = ['roles/bgp/tests/test_bgp_network.yml',
+                      'roles/bgp/tests/test_bgp_router_id.yml']
+
     server = _setup(topology)
-    step("Test %s playbook" % playbook)
-    _test_playbook(server, playbook, ops='-v')
+    if(topology.engine == 'ostl'):
+        git_clone_ops_ansible_copy_sshkey(server)
+    copy_ssh_key(server, step)
+    for playbook in test_playbooks:
+        step("Test %s playbook" % playbook)
+        _test_playbook(server, playbook, ops='-v')
