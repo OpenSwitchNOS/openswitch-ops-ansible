@@ -13,7 +13,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import time
+from time import sleep
 from pytest import mark
 
 TOPOLOGY = """
@@ -84,6 +84,7 @@ def test_bgp_role(topology, step):
     server = _setup(topology)
     if(topology.engine == 'ostl'):
         git_clone_ops_ansible_copy_sshkey(server)
+    sleep(30)
     copy_ssh_key(server, step)
     for playbook in test_playbooks:
         step("Test %s playbook" % playbook)
