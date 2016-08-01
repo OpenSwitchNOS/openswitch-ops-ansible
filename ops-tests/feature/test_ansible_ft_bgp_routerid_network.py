@@ -40,7 +40,7 @@ def _setup(topo):
     switch = topo.get('switch')
 
     # Wait switch to come up
-    time.sleep(10)
+    sleep(10)
 
     # Server IP address
     server.libs.ip.interface('eth0', addr='192.168.1.254/24', up=True)
