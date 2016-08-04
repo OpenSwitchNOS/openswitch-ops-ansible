@@ -61,7 +61,11 @@ def copy_ssh_key(server, step):
 def git_clone_ops_ansible_copy_sshkey(server):
     server("git clone https://git.openswitch.net/openswitch/"
            "ops-ansible.git /etc/ansible/")
+    while (server("echo $?") == 0):
+        sleep(30) 
     server("cp -r /etc/ansible/utils/id* /root/.ssh/")
+    while (server("echo $?") == 0):
+        sleep(10)
 
 
 def _cmd(playbook, ops=''):
